@@ -7,14 +7,15 @@ import io
 from tqdm import tqdm
 
 
-# PREFIXES = ["tournament gameplay_", "audience cam_", "main cam_", "wireless cam_"]
-PREFIXES = ["moonlight p1_", "moonlight p2_", "main cam_", "wireless cam_"]
-REC_PATH = r"S:/"
-STAGE_PATH = r"P:/coe replays and highlights/staging"
+PREFIXES = ["tournament gameplay_", "audience cam_", "main cam_", "wireless cam_"]
+# PREFIXES = ["moonlight p1_", "moonlight p2_", "main cam_", "wireless cam_"]
+# PREFIXES = ["moonlight p1_", "main cam_"]
+REC_PATH = r"P:/COE2024 ISO Recordings/2024-08-03" 
+# STAGE_PATH = r"P:/coe replays and highlights/staging"
 COPY_CHUNK_SIZE = 1024 * 1024
 OUT_PATH = r"P:/coe replays and highlights/"
 
-FFMPEG_CMD_TEMPLATE = ["ffmpeg", "-sseof", "-300", "-i", None, "-t", "300", "-c", "copy", None]
+FFMPEG_CMD_TEMPLATE = ["ffmpeg", "-fflags", "fastseek", "-sseof", "-300", "-i", None, "-t", "300", "-c", "copy", None]
 
 
 def make_growing_local_copy(remote_fname_relative: str):
@@ -40,7 +41,7 @@ def make_growing_local_copy(remote_fname_relative: str):
         source_file.seek(local_file_size if local_file_size is not None else 0, io.SEEK_SET)
         with (open(cut_file := os.path.join(STAGE_PATH, f"_{remote_fname_relative}"), "wb") as dest_cut, open(stage_path, "ab") as dest_fh):
             # dest_fh.seek(local_file_size, io.SEEK_SET)
-            # os.sendfile()
+            # os.sendfile() 
 
             pbar = tqdm(unit="B", unit_divisor=1024, unit_scale=True)
             while True:
@@ -55,23 +56,14 @@ def make_growing_local_copy(remote_fname_relative: str):
 
 
 def process_one_source(source_fname: str, prefix: str, destination_fname: str):
-    growing_local_file = make_growing_local_copy(source_fname)
-
-    if growing_local_file is None:
-        print("failed making local growing file")
-        return False, destination_fname
-    
-    _, staged_file = growing_local_file
-    
-    
-    if staged_file is None:
-        print(f"oops, staged file is None for input {source_fname}")
+    if not source_fname.endswith(".ts"):
+        print("can only fast seek on .mpegts files")
         return False, destination_fname
 
     cmd = FFMPEG_CMD_TEMPLATE.copy()
 
-    cmd[4] = os.path.join(REC_PATH, staged_file)
-    cmd[7+2] = os.path.join(OUT_PATH, destination_fname)
+    cmd[4+2] = os.path.join(REC_PATH, source_fname)
+    cmd[7+2+2] = os.path.join(OUT_PATH, destination_fname)
 
     run_proc(cmd)
 
@@ -105,7 +97,7 @@ def main():
             
         test_queue.append((found_file, prefix))
 
-    with concurrent.futures.ThreadPoolExecutor(max_workers=1) as tpe:
+    with concurrent.futures.ThreadPoolExecutor(max_workers=4) as tpe:
         futures = [tpe.submit(process_one_source, filename, prefix, os.path.join(OUT_PATH, f"{prefix}_{batch_datetime}.mp4")) for filename, prefix in test_queue]
 
         for future in concurrent.futures.as_completed(futures):
@@ -114,19 +106,12 @@ def main():
             if not ok:
                 print(f"something went wrong with {destination_file}")
                 continue
-
-            print(f"done with {destination_file}")
-            print(f"done with {destination_file}")
-            print(f"done with {destination_file}")
-            print(f"done with {destination_file}")
-            print(f"done with {destination_file}")
-            print(f"done with {destination_file}")
             print(f"done with {destination_file}")
 
 def run_proc(cmd: list[str]):
     print(" ".join(cmd))
     print()
-    proc = subprocess.Popen(cmd)
+    proc = subprocess.Popen(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
     proc.wait()
     return proc
 
