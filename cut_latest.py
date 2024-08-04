@@ -113,29 +113,6 @@ def main():
             print(f"done with {destination_file}")
             print(f"done with {destination_file}")
             print(f"done with {destination_file}")
-            print(f"done with {destination_file}")
-            print(f"done with {destination_file}")
-            print(f"done with {destination_file}")
-            print(f"done with {destination_file}")
-            print(f"done with {destination_file}")
-            print(f"done with {destination_file}")
-            print(f"done with {destination_file}")
-            print(f"done with {destination_file}")
-
-    
-    #     # ew
-    #     cmd[4] = os.path.join(REC_PATH, fname)
-    #     cmd[7+2] = os.path.join(OUT_PATH, f"{prefix}_{batch_datetime}.mp4")
-
-    #     task_queue.append(cmd)
-    # for f in test_queue:
-    #     make_growing_local_copy(f)
-
-    # with concurrent.futures.ThreadPoolExecutor() as tpe:
-    #     futures = {tpe.submit(run_proc, task): task for task in task_queue}
-    #     for future in concurrent.futures.as_completed(futures):
-    #         print(f"remux for {futures[future][-1]} completed")
-    # print("all done")
 
 def run_proc(cmd: list[str]):
     print(" ".join(cmd))
