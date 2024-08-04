@@ -12,7 +12,8 @@ PREFIXES.append("tournament gameplay_")
 PREFIXES.append("audience cam_")
 PREFIXES.append("main cam_")
 PREFIXES.append("wireless cam_")
-PREFIXES.append("tournament gameplay_")
+PREFIXES.append("player one cam_")
+PREFIXES.append("player two cam_")
 
 # PREFIXES = ["tournament gameplay_", "audience cam_", "main cam_", "wireless cam_"]
 # PREFIXES = ["moonlight p1_", "moonlight p2_", "main cam_", "wireless cam_"]
@@ -22,7 +23,7 @@ STAGE_PATH = r"P:/coe replays and highlights/staging"
 COPY_CHUNK_SIZE = 1024 * 1024
 OUT_PATH = r"P:/coe replays and highlights/"
 
-FFMPEG_CMD_TEMPLATE = ["ffmpeg", "-fflags", "fastseek", "-sseof", "-300", "-i", None, "-t", "300", "-c", "copy", None]
+FFMPEG_CMD_TEMPLATE = ["ffmpeg", "-fflags", "fastseek", "-sseof", "-240", "-i", None, "-t", "240", "-c", "copy", None]
 
 
 def make_growing_local_copy(remote_fname_relative: str):
@@ -74,6 +75,7 @@ def process_one_source(source_fname: str, prefix: str, destination_fname: str):
 
     run_proc(cmd)
 
+    print(f"returned from run_proc")
     return True, destination_fname
     
 
@@ -109,8 +111,7 @@ def main():
             print(f"done with {destination_file}")
 
 def run_proc(cmd: list[str]):
-    print(" ".join(cmd))
-    print()
+    # print(" ".join(cmd))
     proc = subprocess.Popen(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.PIPE, universal_newlines=True)
 
     pbar = tqdm(unit=" frames")
@@ -124,7 +125,9 @@ def run_proc(cmd: list[str]):
 
                 pbar.update(int(trimmed) - pbar.n)
     finally:
-        proc.wait()
+        poll = proc.poll()
+        if poll is None:
+            proc.wait()
     return proc
 
 
