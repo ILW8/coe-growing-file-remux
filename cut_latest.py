@@ -86,12 +86,7 @@ def main():
     test_queue = []
 
     for prefix in PREFIXES:
-        print(prefix)
         found_file = None
-
-        matches = [f for f in dir_files if f.startswith(prefix)]
-
-        print(matches)
 
         for fname in dir_files:
             if fname.startswith(prefix):
@@ -118,8 +113,20 @@ def main():
 def run_proc(cmd: list[str]):
     print(" ".join(cmd))
     print()
-    proc = subprocess.Popen(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-    proc.wait()
+    proc = subprocess.Popen(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.PIPE, universal_newlines=True)
+
+    pbar = tqdm(unit=" frames")
+
+    try:
+        for line in proc.stderr:
+            if line.startswith("frame="):
+                trimmed = line.split("frame=")[1]
+                trimmed = trimmed.split("fps=")[0]
+                trimmed = trimmed.strip()
+
+                pbar.update(int(trimmed) - pbar.n)
+    finally:
+        proc.wait()
     return proc
 
 
