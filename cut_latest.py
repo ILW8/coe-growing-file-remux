@@ -8,10 +8,10 @@ from tqdm import tqdm
 
 
 # PREFIXES = ["tournament gameplay_", "audience cam_", "main cam_", "wireless cam_"]
-PREFIXES = ["main cam_"]
+PREFIXES = ["moonlight p1_", "moonlight p2_", "main cam_", "wireless cam_"]
 REC_PATH = r"S:/"
 STAGE_PATH = r"P:/coe replays and highlights/staging"
-COPY_CHUNK_SIZE = 128 * 1024
+COPY_CHUNK_SIZE = 1024 * 1024
 OUT_PATH = r"P:/coe replays and highlights/"
 
 FFMPEG_CMD_TEMPLATE = ["ffmpeg", "-sseof", "-300", "-i", None, "-t", "300", "-c", "copy", None]
@@ -38,7 +38,7 @@ def make_growing_local_copy(remote_fname_relative: str):
             return
         
         source_file.seek(local_file_size if local_file_size is not None else 0, io.SEEK_SET)
-        with open(stage_path, "ab") as dest_fh:
+        with (open(cut_file := os.path.join(STAGE_PATH, f"_{remote_fname_relative}"), "wb") as dest_cut, open(stage_path, "ab") as dest_fh):
             # dest_fh.seek(local_file_size, io.SEEK_SET)
             # os.sendfile()
 
@@ -48,12 +48,21 @@ def make_growing_local_copy(remote_fname_relative: str):
                 if not data:
                     break
                 pbar.update(len(data))
+                # TODO: seek and ftruncate for offset -- skip writing a large file
                 dest_fh.write(data)
-    return staging_file
+                dest_cut.write(data)
+    return staging_file, cut_file
 
 
 def process_one_source(source_fname: str, prefix: str, destination_fname: str):
-    staged_file = make_growing_local_copy(source_fname)
+    growing_local_file = make_growing_local_copy(source_fname)
+
+    if growing_local_file is None:
+        print("failed making local growing file")
+        return False, destination_fname
+    
+    _, staged_file = growing_local_file
+    
     
     if staged_file is None:
         print(f"oops, staged file is None for input {source_fname}")
@@ -96,7 +105,7 @@ def main():
             
         test_queue.append((found_file, prefix))
 
-    with concurrent.futures.ThreadPoolExecutor() as tpe:
+    with concurrent.futures.ThreadPoolExecutor(max_workers=1) as tpe:
         futures = [tpe.submit(process_one_source, filename, prefix, os.path.join(OUT_PATH, f"{prefix}_{batch_datetime}.mp4")) for filename, prefix in test_queue]
 
         for future in concurrent.futures.as_completed(futures):
