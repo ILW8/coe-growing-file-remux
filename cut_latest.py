@@ -80,9 +80,7 @@ def process_one_source(source_fname: str, prefix: str, destination_fname: str):
 
 def main():
     dir_files: list[str] = sorted(os.listdir(REC_PATH), reverse=True)
-    task_queue = []
     batch_datetime: str = datetime.datetime.now().isoformat().replace(":", ".")
-
     test_queue = []
 
     for prefix in PREFIXES:
