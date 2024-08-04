@@ -7,11 +7,18 @@ import io
 from tqdm import tqdm
 
 
-PREFIXES = ["tournament gameplay_", "audience cam_", "main cam_", "wireless cam_"]
+PREFIXES = []
+PREFIXES.append("tournament gameplay_")
+PREFIXES.append("audience cam_")
+PREFIXES.append("main cam_")
+PREFIXES.append("wireless cam_")
+PREFIXES.append("tournament gameplay_")
+
+# PREFIXES = ["tournament gameplay_", "audience cam_", "main cam_", "wireless cam_"]
 # PREFIXES = ["moonlight p1_", "moonlight p2_", "main cam_", "wireless cam_"]
 # PREFIXES = ["moonlight p1_", "main cam_"]
 REC_PATH = r"P:/COE2024 ISO Recordings/2024-08-03" 
-# STAGE_PATH = r"P:/coe replays and highlights/staging"
+STAGE_PATH = r"P:/coe replays and highlights/staging"
 COPY_CHUNK_SIZE = 1024 * 1024
 OUT_PATH = r"P:/coe replays and highlights/"
 
